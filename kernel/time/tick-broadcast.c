@@ -87,6 +87,8 @@ static bool tick_check_broadcast_device(struct clock_event_device *curdev,
 void tick_install_broadcast_device(struct clock_event_device *dev)
 {
 
+	struct clock_event_device *cur = tick_broadcast_device.evtdev;
+
 	if (!tick_check_broadcast_device(cur, dev))
 		return;
 
@@ -94,6 +96,8 @@ void tick_install_broadcast_device(struct clock_event_device *dev)
 		return;
 
 	clockevents_exchange_device(cur, dev);
+	if (cur)
+		cur->event_handler = clockevents_handle_noop;
 	tick_broadcast_device.evtdev = dev;
 	if (!cpumask_empty(tick_broadcast_mask))
 		tick_broadcast_start_periodic(dev);
