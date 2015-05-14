@@ -4819,7 +4819,7 @@ WDI_RXMsgCTSCB
  @see
  @return Result of the function call
 */
-WPT_INLINE WDI_Status   // Motorola IKJB42MAIN-4103, are002, match instantiation
+static WPT_INLINE WDI_Status   // Motorola IKJB42MAIN-4103, are002, match instantiation
 WDI_ProcessResponse
 (
   WDI_ControlBlockType*  pWDICtx,
