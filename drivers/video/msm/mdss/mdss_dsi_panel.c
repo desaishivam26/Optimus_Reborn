@@ -36,6 +36,10 @@
 #include "mdss_fb.h"
 #include "dsi_v2.h"
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+#endif
+
 #define DT_CMD_HDR 6
 #define DROPBOX_DISPLAY_ISSUE "display_issue"
 #define ESD_DROPBOX_MSG "ESD event detected"
@@ -770,6 +774,17 @@ static int mdss_dsi_quickdraw_check_panel_state(struct mdss_panel_data *pdata,
 	return ret;
 }
 
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+extern bool s2w_scr_suspended;
+#endif
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+bool screen_suspended  = false;
+bool forced = true;
+extern bool dt2w_scr_suspended;
+extern void ct_enable(void);
+extern void ct_disable(void);
+#endif
+
 static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 {
 	struct mipi_panel_info *mipi;
@@ -880,6 +895,15 @@ end:
 
 	pr_info("%s-. Pwr_mode(0x0A) = 0x%x\n", __func__, pwr_mode);
 
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	s2w_scr_suspended = false;
+#endif
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0) {
+	dt2w_scr_suspended = false;
+	ct_disable();
+	}
+#endif
 	return 0;
 }
 
@@ -937,6 +961,15 @@ disable_regs:
 
 	pr_info("%s-:\n", __func__);
 
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	s2w_scr_suspended = true;
+#endif
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0) {
+	ct_enable();
+	dt2w_scr_suspended = true;
+	}
+#endif
 	return 0;
 }
 

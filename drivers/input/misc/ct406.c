@@ -19,6 +19,11 @@
 #include <linux/ct406.h>
 
 #include <linux/delay.h>
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
+#endif
+#endif
 #include <linux/i2c.h>
 #include <linux/input.h>
 #include <linux/interrupt.h>
@@ -222,6 +227,15 @@ static struct ct406_reg {
 #define CT406_DBG_IOCTL			0x00000008
 #define CT406_DBG_SUSPEND_RESUME	0x00000010
 static u32 ct406_debug = 0x00000000;
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#include <linux/input/sweep2wake.h>
+#include <linux/input/doubletap2wake.h>
+bool prox_covered = false;
+extern bool forced;
+extern bool screen_suspended;
+extern void touch_suspend(void);
+extern void touch_resume(void);
+#endif
 module_param_named(debug_mask, ct406_debug, uint, 0644);
 
 static int ct406_i2c_read(struct ct406_data *ct, u8 *buf, int len)
@@ -547,7 +561,14 @@ static void ct406_prox_mode_uncovered(struct ct406_data *ct)
 		pilt = 0;
 	if (piht > ct->pdata_max)
 		piht = ct->pdata_max;
-
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+if (dt2w_switch > 0) {
+	prox_covered = false;
+	if (screen_suspended) {
+		touch_resume();
+		}
+	}	
+#endif
 	ct->prox_mode = CT406_PROX_MODE_UNCOVERED;
 	ct->prox_low_threshold = pilt;
 	ct->prox_high_threshold = piht;
@@ -563,11 +584,18 @@ static void ct406_prox_mode_covered(struct ct406_data *ct)
 
 	if (pilt > ct->pdata_max)
 		pilt = ct->pdata_max;
-
 	ct->prox_mode = CT406_PROX_MODE_COVERED;
 	ct->prox_low_threshold = pilt;
 	ct->prox_high_threshold = piht;
 	ct406_write_prox_thresholds(ct);
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+	if (dt2w_switch > 0) {
+		prox_covered = true;
+		if (screen_suspended) {
+		touch_suspend();
+		}
+	}
+#endif
 	pr_info("%s: Prox mode covered\n", __func__);
 }
 
@@ -1426,6 +1454,31 @@ static void ct406_work_prox_start(struct work_struct *work)
 	mutex_unlock(&ct->mutex);
 }
 
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+void ct_enable(void)
+{
+	screen_suspended = true;
+	if (!ct406_misc_data->prox_enabled)
+		{
+			forced = true;
+			ct406_enable_prox(ct406_misc_data);
+		}
+}
+EXPORT_SYMBOL(ct_enable);
+
+void ct_disable(void)
+{
+	screen_suspended = false;
+	if (forced)
+		{
+			ct406_disable_prox(ct406_misc_data);
+			forced = false;
+		}
+}
+EXPORT_SYMBOL(ct_disable);
+#endif
+
+/*
 static int ct406_suspend(struct ct406_data *ct)
 {
 	if (ct406_debug & CT406_DBG_SUSPEND_RESUME)
@@ -1480,6 +1533,7 @@ static int ct406_pm_event(struct notifier_block *this,
 
 	return NOTIFY_DONE;
 }
+*/
 
 #ifdef CONFIG_OF
 static struct ct406_platform_data *
@@ -1671,13 +1725,18 @@ static int ct406_probe(struct i2c_client *client,
 		pr_err("%s:device init failed: %d\n", __func__, error);
 		goto error_revision_read_failed;
 	}
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+	if (s2w_switch > 0 || dt2w_switch > 0)
+		ct406_enable_prox(ct);
+#endif
 
+/*
 	ct->pm_notifier.notifier_call = ct406_pm_event;
 	error = register_pm_notifier(&ct->pm_notifier);
 	if (error < 0) {
 		pr_err("%s:Register_pm_notifier failed: %d\n", __func__, error);
 	}
-
+*/
 	return 0;
 
 error_revision_read_failed:
