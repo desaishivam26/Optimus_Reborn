@@ -28,6 +28,10 @@
 #include "audio_acdb.h"
 #include "q6voice.h"
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+#endif
+
 
 #define TIMEOUT_MS 300
 
@@ -94,6 +98,12 @@ static int voice_free_oob_shared_mem(void);
 static int voice_alloc_oob_mem_table(void);
 static int voice_alloc_and_map_cal_mem(struct voice_data *v);
 static int voice_alloc_and_map_oob_mem(struct voice_data *v);
+
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+extern bool dt2w_scr_suspended;
+extern void ct_enable(void);
+extern void ct_disable(void);
+#endif
 
 static struct voice_data *voice_get_session_by_idx(int idx);
 
@@ -4787,6 +4797,12 @@ int voc_end_voice_call(uint32_t session_id)
 		voice_destroy_mvm_cvs_session(v);
 
 		v->voc_state = VOC_RELEASE;
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0) {
+		dt2w_scr_suspended = false;
+		ct_disable();
+	}
+#endif
 	} else {
 		pr_err("%s: Error: End voice called in state %d\n",
 			__func__, v->voc_state);
@@ -5007,6 +5023,12 @@ int voc_start_voice_call(uint32_t session_id)
 		ret = -EINVAL;
 		goto fail;
 	}
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+if (dt2w_switch > 0) {
+	dt2w_scr_suspended = false;
+	ct_enable();
+	}
+#endif
 fail:
 	mutex_unlock(&v->lock);
 	return ret;
