@@ -1476,9 +1476,9 @@ void ct_disable(void)
 		}
 }
 EXPORT_SYMBOL(ct_disable);
-#endif
 
-/*
+#else
+
 static int ct406_suspend(struct ct406_data *ct)
 {
 	if (ct406_debug & CT406_DBG_SUSPEND_RESUME)
@@ -1533,7 +1533,7 @@ static int ct406_pm_event(struct notifier_block *this,
 
 	return NOTIFY_DONE;
 }
-*/
+#endif
 
 #ifdef CONFIG_OF
 static struct ct406_platform_data *
@@ -1728,15 +1728,13 @@ static int ct406_probe(struct i2c_client *client,
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 	if (s2w_switch > 0 || dt2w_switch > 0)
 		ct406_enable_prox(ct);
-#endif
-
-/*
+#else
 	ct->pm_notifier.notifier_call = ct406_pm_event;
 	error = register_pm_notifier(&ct->pm_notifier);
 	if (error < 0) {
 		pr_err("%s:Register_pm_notifier failed: %d\n", __func__, error);
 	}
-*/
+#endif
 	return 0;
 
 error_revision_read_failed:
