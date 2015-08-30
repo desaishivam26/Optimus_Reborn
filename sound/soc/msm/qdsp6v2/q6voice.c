@@ -28,6 +28,9 @@
 #include "audio_acdb.h"
 #include "q6voice.h"
 
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+#include <linux/input/sweep2wake.h>
+#endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 #include <linux/input/doubletap2wake.h>
 #endif
@@ -99,10 +102,11 @@ static int voice_alloc_oob_mem_table(void);
 static int voice_alloc_and_map_cal_mem(struct voice_data *v);
 static int voice_alloc_and_map_oob_mem(struct voice_data *v);
 
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+extern bool s2w_call_activity;
+#endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
-extern bool dt2w_scr_suspended;
-extern void ct_enable(void);
-extern void ct_disable(void);
+extern bool dt2w_call_activity;
 #endif
 
 static struct voice_data *voice_get_session_by_idx(int idx);
@@ -4797,10 +4801,14 @@ int voc_end_voice_call(uint32_t session_id)
 		voice_destroy_mvm_cvs_session(v);
 
 		v->voc_state = VOC_RELEASE;
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	if (s2w_switch > 0) {
+		s2w_call_activity = false;
+	}
+#endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 	if (dt2w_switch > 0) {
-		dt2w_scr_suspended = false;
-		ct_disable();
+		dt2w_call_activity = false;
 	}
 #endif
 	} else {
@@ -4860,6 +4868,16 @@ int voc_standby_voice_call(uint32_t session_id)
 		}
 		v->voc_state = VOC_STANDBY;
 	}
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	if (s2w_switch > 0) {
+		s2w_call_activity = true;
+	}
+#endif
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0) {
+		dt2w_call_activity = true;
+	}
+#endif
 fail:
 	return ret;
 }
@@ -4919,6 +4937,16 @@ int voc_resume_voice_call(uint32_t session_id)
 	}
 	v->voc_state = VOC_RUN;
 	return 0;
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	if (s2w_switch > 0) {
+		s2w_call_activity = true;
+	}
+#endif
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0) {
+		dt2w_call_activity = true;
+	}
+#endif
 fail:
 	return -EINVAL;
 }
@@ -5023,10 +5051,14 @@ int voc_start_voice_call(uint32_t session_id)
 		ret = -EINVAL;
 		goto fail;
 	}
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	if (s2w_switch > 0) {
+		s2w_call_activity = true;
+	}
+#endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
-if (dt2w_switch > 0) {
-	dt2w_scr_suspended = false;
-	ct_enable();
+	if (dt2w_switch > 0) {
+		dt2w_call_activity = true;
 	}
 #endif
 fail:
