@@ -64,6 +64,7 @@ MODULE_LICENSE("GPLv2");
 
 /* Resources */
 int s2w_switch = S2W_DEFAULT, s2w_s2sonly = S2W_S2SONLY_DEFAULT;
+bool s2w_call_activity = false;
 bool s2w_scr_suspended = false;
 static int touch_x = 0, touch_y = 0;
 static bool touch_x_called = false, touch_y_called = false;
@@ -366,6 +367,9 @@ static void s2w_input_event(struct input_handle *handle, unsigned int type,
 		(code==ABS_MT_TRACKING_ID) ? "ID" :
 		"undef"), code, value);
 #endif
+	if (s2w_call_activity)
+		return;
+
 	if (code == ABS_MT_SLOT) {
 		sweep2wake_reset();
 		return;
