@@ -19,11 +19,6 @@
 #include <linux/ct406.h>
 
 #include <linux/delay.h>
-#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-#ifdef CONFIG_POWERSUSPEND
-#include <linux/powersuspend.h>
-#endif
-#endif
 #include <linux/i2c.h>
 #include <linux/input.h>
 #include <linux/interrupt.h>
