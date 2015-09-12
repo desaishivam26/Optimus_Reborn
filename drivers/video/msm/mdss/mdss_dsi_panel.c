@@ -901,7 +901,7 @@ end:
 	pr_info("%s-. Pwr_mode(0x0A) = 0x%x\n", __func__, pwr_mode);
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	if (s2w_switch > 0) {
+	if (s2w_switch == 1) {
 		if (!s2w_call_activity) {
 			s2w_scr_suspended = false;
 			ct_disable();
@@ -974,7 +974,7 @@ disable_regs:
 	pr_info("%s-:\n", __func__);
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	if (s2w_switch > 0) {
+	if (s2w_switch == 1) {
 		if (!s2w_call_activity) {
 			ct_enable();
 			s2w_scr_suspended = true;
