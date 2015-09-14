@@ -2147,7 +2147,9 @@ static int synaptics_rmi4_irq_enable(struct synaptics_rmi4_data *rmi4_data,
 			return retval;
 		}
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+	if (s2w_switch == 1 || dt2w_switch > 0) {
 		irq_set_irq_wake(rmi4_data->irq, 1);
+	}
 #endif
 
 		dev_dbg(&rmi4_data->i2c_client->dev,
@@ -2161,7 +2163,9 @@ static int synaptics_rmi4_irq_enable(struct synaptics_rmi4_data *rmi4_data,
 			rmi4_data->irq_enabled = false;
 		
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP	
+	if (s2w_switch == 1 || dt2w_switch > 0) {
 		irq_set_irq_wake(rmi4_data->irq, 0);
+	}
 #endif
 
 		dev_dbg(&rmi4_data->i2c_client->dev,
@@ -3690,32 +3694,60 @@ static int synaptics_rmi4_suspend(struct device *dev)
 			rmi4_data->board;
 
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-	if (prox_covered) {	
-#endif
-	synaptics_dsx_sensor_state(rmi4_data, STATE_SUSPEND);
-	rmi4_data->poweron = false;
+	if (s2w_switch == 1 || dt2w_switch > 0) {
+		if (prox_covered) {
+			synaptics_dsx_sensor_state(rmi4_data, STATE_SUSPEND);
+			rmi4_data->poweron = false;
 
-	if (rmi4_data->purge_enabled) {
-		int value = 1; /* set flag */
-		atomic_set(&rmi4_data->panel_off_flag, value);
-		pr_debug("touches purge is %s\n", value ? "ON" : "OFF");
-	}
+			if (rmi4_data->purge_enabled) {
+				int value = 1; /* set flag */
+				atomic_set(&rmi4_data->panel_off_flag, value);
+				pr_debug("touches purge is %s\n", value ? "ON" : "OFF");
+			}
 
-	if (!rmi4_data->touch_stopped) {
-		if (platform_data->regulator_en) {
-			regulator_disable(rmi4_data->regulator);
-			pr_debug("touch-vdd regulator is %s\n",
-				regulator_is_enabled(rmi4_data->regulator) ?
-				"on" : "off");
-		}
+			if (!rmi4_data->touch_stopped) {
+				if (platform_data->regulator_en) {
+					regulator_disable(rmi4_data->regulator);
+					pr_debug("touch-vdd regulator is %s\n",
+						regulator_is_enabled(rmi4_data->regulator) ?
+						"on" : "off");
+				}
 
-		gpio_free(platform_data->reset_gpio);
+				gpio_free(platform_data->reset_gpio);
 
-		rmi4_data->touch_stopped = true;
-	}
-#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+				rmi4_data->touch_stopped = true;
+			}
 			pr_info("suspend avoided!\n");
 			return 0;
+		}
+
+	}
+	
+	if (s2w_switch == 0 || dt2w_switch == 0) {
+#endif
+		synaptics_dsx_sensor_state(rmi4_data, STATE_SUSPEND);
+		rmi4_data->poweron = false;
+
+		if (rmi4_data->purge_enabled) {
+			int value = 1; /* set flag */
+			atomic_set(&rmi4_data->panel_off_flag, value);
+			pr_debug("touches purge is %s\n", value ? "ON" : "OFF");
+		}
+
+		if (!rmi4_data->touch_stopped) {
+			if (platform_data->regulator_en) {
+				regulator_disable(rmi4_data->regulator);
+				pr_debug("touch-vdd regulator is %s\n",
+					regulator_is_enabled(rmi4_data->regulator) ?
+					"on" : "off");
+			}
+
+			gpio_free(platform_data->reset_gpio);
+
+			rmi4_data->touch_stopped = true;
+		}
+
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 	}
 #endif
 
