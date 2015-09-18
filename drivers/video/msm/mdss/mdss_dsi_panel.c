@@ -947,6 +947,11 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	if (ctrl->set_hbm)
 		ctrl->set_hbm(ctrl, 0);
 
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+	if (dt2w_switch > 0 || s2w_switch == 1)
+		ctrl->off_cmds.cmds[1].payload[0] = 0x10;
+#endif
+
 	if (mfd->quickdraw_in_progress)
 		pr_debug("%s: in quickdraw, SH wants the panel SLEEP OUT\n",
 			__func__);
