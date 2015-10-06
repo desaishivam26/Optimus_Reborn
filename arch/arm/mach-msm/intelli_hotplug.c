@@ -328,7 +328,7 @@ static void __ref intelli_plug_resume(void)
 		}
 	}
 
-	if (wakeup_boost || required_wakeup) {
+	if (required_wakeup) {
 		/* Fire up all CPUs */
 		for_each_cpu_not(cpu, cpu_online_mask) {
 			if (cpu == 0)
