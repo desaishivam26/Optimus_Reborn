@@ -356,6 +356,12 @@ KERNEL_FLAGS	= -marm -mtune=cortex-a7 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
                   -ftree-vectorize -fmodulo-sched -ffast-math \
                   -funsafe-math-optimizations -std=gnu89
 
+# Try to always use GNU ld
+ifneq ($(wildcard $(CROSS_COMPILE)ld.bfd),)
+LD		= $(CROSS_COMPILE)ld.bfd
+endif
+
+
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_MODULE   = -DMODULE -fno-pic $(KERNEL_FLAGS)
