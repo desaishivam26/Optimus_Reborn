@@ -782,12 +782,8 @@ extern bool s2w_scr_suspended;
 extern bool s2w_call_activity;
 #endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
-bool screen_suspended  = false;
-bool forced = true;
 extern bool dt2w_call_activity;
 extern bool dt2w_scr_suspended;
-extern void ct_enable(void);
-extern void ct_disable(void);
 #endif
 
 static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
@@ -902,18 +898,14 @@ end:
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 	if (s2w_switch == 1) {
-		if (!s2w_call_activity) {
+		if (!s2w_call_activity)
 			s2w_scr_suspended = false;
-			ct_disable();
-			}
 	}
 #endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 	if (dt2w_switch > 0) {
-		if (!dt2w_call_activity) {
+		if (!dt2w_call_activity)
 			dt2w_scr_suspended = false;
-			ct_disable();
-			}
 	}
 #endif
 	return 0;
@@ -975,18 +967,14 @@ disable_regs:
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 	if (s2w_switch == 1) {
-		if (!s2w_call_activity) {
-			ct_enable();
+		if (!s2w_call_activity)
 			s2w_scr_suspended = true;
-			}
 	}
 #endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 	if (dt2w_switch > 0) {
-		if (!dt2w_call_activity) {
-			ct_enable();
+		if (!dt2w_call_activity)
 			dt2w_scr_suspended = true;
-		}
 	}
 #endif
 	return 0;
