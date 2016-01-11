@@ -595,11 +595,7 @@ static struct synaptics_dsx_platform_data *
 
 		button_map->map = button_codes;
 	}
-#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-	pdata->irq_flags = IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_NO_SUSPEND;
-#else
 	pdata->irq_flags = IRQF_TRIGGER_LOW | IRQF_ONESHOT;
-#endif
 	pdata->cap_button_map = button_map;
 
 	if (of_property_read_bool(np, "synaptics,gpio-config")) {
@@ -909,7 +905,7 @@ static int synaptics_dsx_ic_reset(
 	}
 
 	retval = request_irq(rmi4_data->irq, synaptics_dsx_reset_irq,
-			IRQF_TRIGGER_RISING, "synaptics_reset",
+			IRQF_TRIGGER_RISING | IRQF_NO_SUSPEND, "synaptics_reset",
 			&reset_semaphore);
 	if (retval < 0)
 		dev_err(&rmi4_data->i2c_client->dev,

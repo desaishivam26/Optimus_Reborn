@@ -1460,20 +1460,24 @@ static void ct406_work_prox_start(struct work_struct *work)
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 static void ct_suspend(struct work_struct *work)
 {
-	if (forced) {
-		ct406_disable_prox(ct406_misc_data);
-		forced = false;
+	if (s2w_switch == 1 || dt2w_switch > 0) {
+		if (forced) {
+			ct406_disable_prox(ct406_misc_data);
+			forced = false;
+		}
+		ct_active = false;
 	}
-	ct_active = false;
 }
 
 static void __ref ct_resume(struct work_struct *work)
 {
-	if (!ct406_misc_data->prox_enabled) {
-		forced = true;
-		ct406_enable_prox(ct406_misc_data);
+	if (s2w_switch == 1 || dt2w_switch > 0) {
+		if (!ct406_misc_data->prox_enabled) {
+			forced = true;
+			ct406_enable_prox(ct406_misc_data);
+		}
+		ct_active = true;
 	}
-	ct_active = true;
 }
 
 static void ct_disable(void)
