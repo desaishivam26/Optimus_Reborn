@@ -7,8 +7,8 @@ export ARCH=arm
 echo 'exporting Arch'
 export SUBARCH=arm
 echo 'exporting SubArch'
-export CROSS_COMPILE=/home/jenkins/vfs/user_9/linaro/bin/arm-linux-androideabi-
-echo 'exporting Linaro 4.9.4 toolchain'
+export CROSS_COMPILE=/home/jenkins/vfs/user_9/uber/bin/arm-eabi-
+echo 'exporting UBER toolchain'
 
 # Clean Build
 echo 'Cleaning build'
