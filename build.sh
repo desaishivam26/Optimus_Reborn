@@ -15,5 +15,7 @@ echo 'Cleaning build'
 make clean && make mrproper
 
 # Let the party start!
+echo 'Making config'
 make falcon_defconfig
+echo 'Compiling Kernel'
 make -j4
